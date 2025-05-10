@@ -155,7 +155,8 @@ if page == "Model Performance":
         st.markdown("""**Inference**:
 
                      An AUC of 0.8543 suggests that the model is effective at identifying customers at risk of churn. 
-                    This is a positive result, indicating that the model has the potential to be valuable for your bank in implementing churn prevention strategies.
+    This is a positive result, indicating that the model has the potential to be valuable for your bank in implementing 
+    churn prevention strategies.
                     
                      """)
     else:
