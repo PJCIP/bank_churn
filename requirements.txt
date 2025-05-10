@@ -1,0 +1,10 @@
+ipykernel
+pandas
+numpy
+scikit-learn
+pycaret
+shap
+xgboost
+catboost
+streamlit
+openpyxl
