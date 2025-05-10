@@ -17,11 +17,6 @@ def log_transform(x):
     return np.log(x_adjusted)
 
 
-# Define any custom functions needed for the model
-def log_transform(x):
-    return np.log(x + 1)  # Example log transform, handle zero values
-
-
 # Load the pre-trained model and data
 try:
     with open('bank_churn_mod_v2.pkl', 'rb') as file:
@@ -57,27 +52,21 @@ if page == "About Dataset":
 
     With this data, had created a visualization to come up with some basic insights.
 
-    Visualization: https://mavenanalytics.io/project/32515            
+    **Visualization:** https://mavenanalytics.io/project/32515            
     
-    Github: 
-    To interact feel free to download the powerbi desktop version from my github
+    **Github:** https://github.com/PJCIP/bank_churn
+                
+    To interact feel free to download the powerbi desktop version from my github Mentioned above 
+
+    **Key insights:**
+                
+    - Out of 10,000 customers, 2,037 had exited hence dataset is an imbalanced dataset 
+    - Female contribute 60%  of exit rate.
+    - Senior Age Group tend to exit a lot out of contributing 50% of the exit
+    - People who purchase 2+ products tend to exit.
+                
         
     ''')
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Accuracy", f"{accuracy:.2f}")
-    col2.metric("Precision (Class 0)", f"{precision_class_0:.2f}")
-    col3.metric("Recall (Class 0)", f"{recall_class_0:.2f}")
-    col1, col2, col3 = st.columns(3)
-    col1.metric("F1-Score (Class 0)", f"{f1_score_class_0:.2f}")
-    col2.metric("Precision (Class 1)", f"{precision_class_1:.2f}")
-    col3.metric("Recall (Class 1)", f"{recall_class_1:.2f}")
-    st.metric("F1-Score (Class 1)", f"{f1_score_class_1:.2f}")
-
-    # Plots
-    st.subheader("Precision-Recall and ROC Curves")
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-
 
 # 1. Model Performance Page
 if page == "Model Performance":
@@ -156,8 +145,14 @@ elif page == "SHAP Analysis":
             + log_transform_cols
             + [col for col in original_columns if col not in labels_endcode + onehot_cols + log_transform_cols + one_hot_labels + ['Exited']]
         )
+        
         # print(feature_names)
         # feature_names = log_transform_cols +[col for col in input_data.columns if col not in log_transform_cols+['Exited']]
+        print(X_test.columns,print(X_test.shape))
+
+        print(model.named_steps['preprocessor'].transform(X_test).shape)
+        print(len(feature_names))
+        print(feature_names)
         X_test_processed = pd.DataFrame(model.named_steps['preprocessor'].transform(X_test),columns=feature_names)
 
         # Explain the model's predictions using SHAP
