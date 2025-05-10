@@ -46,8 +46,11 @@ if page == "About Dataset":
     st.markdown('''
     ### 
     **Description:** Account information for 10,000 customers at a European bank, including details on their credit score, balance, products, and whether they have churned.
+    
     **Data Source:** Bank_Churn.xlsx with two sheets (Customer_info and Accounts_info)
+    
     **No. of records :** 10,000 records
+    
     **No. of Fields :** 13
 
     With this data, had created a visualization to come up with some basic insights.
@@ -74,14 +77,14 @@ if page == "Model Performance":
 
     # Model Evaluation
     if 'Exited' in X_test.columns:  # check if target is in the provided dataset.
-        y_true = X_test['Exited']
+        y_test = X_test['Exited']
         X_test = X_test.drop('Exited', axis=1)
         y_pred = model.predict(X_test)
         y_pred_proba = model.predict_proba(X_test)[:, 1]  # Probability of class 1
 
         # Key Metrics
-        st.subheader("Key Metrics")
-        report = classification_report(y_true, y_pred, output_dict=True)
+        st.subheader("Performance by Class")
+        report = classification_report(y_test, y_pred, output_dict=True)
         precision_class_0 = report['0']['precision']
         recall_class_0 = report['0']['recall']
         f1_score_class_0 = report['0']['f1-score']
@@ -89,23 +92,48 @@ if page == "Model Performance":
         recall_class_1 = report['1']['recall']
         f1_score_class_1 = report['1']['f1-score']
         accuracy = report['accuracy']
+        tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+        specificity = tn / (tn + fp)
 
         col1, col2, col3 = st.columns(3)
-        col1.metric("Accuracy", f"{accuracy:.2f}")
+        
+        col1.metric("F1-Score (Class 0)", f"{f1_score_class_0:.2f}")
         col2.metric("Precision (Class 0)", f"{precision_class_0:.2f}")
         col3.metric("Recall (Class 0)", f"{recall_class_0:.2f}")
         col1, col2, col3 = st.columns(3)
-        col1.metric("F1-Score (Class 0)", f"{f1_score_class_0:.2f}")
+        col1.metric("F1-Score (Class 1)", f"{f1_score_class_1:.2f}")
         col2.metric("Precision (Class 1)", f"{precision_class_1:.2f}")
         col3.metric("Recall (Class 1)", f"{recall_class_1:.2f}")
-        st.metric("F1-Score (Class 1)", f"{f1_score_class_1:.2f}")
+        
+        st.subheader("Overall Performance ")
+        col1, col2, col3,col4,col5 = st.columns(5)
+        col1.metric("Accuracy", f"{accuracy:.2f}")
+        col2.metric("F1_score", f"{f1_score(y_test, y_pred):.4f}")
+        col3.metric("Precisison", f"{precision_score(y_test, y_pred):.4f}")
+        col4.metric("Recall", f"{recall_score(y_test, y_pred):.4f}")
+        col5.metric("Specificity", f"{specificity:.4f}")
 
+        st.markdown("""**Inference**:
+
+        Here, is the catch you might have noticed that the recall mentioning we are 70% of the churn pattern is recognized 
+    but there exist only 50% chance that he/she will actually exit.
+        
+    This model is designed with objective that the cost of losing a customer (false negative) is significantly higher 
+    than the cost of a wasted retention effort (false positive), hence satisfied with  model's recall (70%). 
+    
+    Meaning, Bank is ready to  risk spending resources on some who weren't going to leave to ensure you catch more of those who were.
+        
+    Just in case the cost of a wasted retention effort is very high (e.g., very expensive campaigns, risk of alienating customers). 
+                    
+    In this case, just be setting threshold as .69. Would set the precision to 70% and recall to be 50%.
+     """)
+        
         # Plots
         st.subheader("Precision-Recall and ROC Curves")
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
         # Precision-Recall Curve
-        precision, recall, _ = precision_recall_curve(y_true, y_pred_proba)
+        precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
         ax1.plot(recall, precision, label='Precision-Recall')
         ax1.set_xlabel('Recall')
         ax1.set_ylabel('Precision')
@@ -113,7 +141,7 @@ if page == "Model Performance":
         ax1.legend()
 
         # ROC Curve
-        fpr, tpr, _ = roc_curve(y_true, y_pred_proba)
+        fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
         roc_auc = auc(fpr, tpr)
         ax2.plot(fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.2f})')
         ax2.plot([0, 1], [0, 1], 'k--')  # Diagonal line for random classifier
@@ -123,6 +151,13 @@ if page == "Model Performance":
         ax2.legend()
 
         st.pyplot(fig)
+
+        st.markdown("""**Inference**:
+
+                     An AUC of 0.8543 suggests that the model is effective at identifying customers at risk of churn. 
+                    This is a positive result, indicating that the model has the potential to be valuable for your bank in implementing churn prevention strategies.
+                    
+                     """)
     else:
         st.write(
             "Target variable 'Exited' not found in x_test.csv.  Model performance metrics and plots are not available.")
